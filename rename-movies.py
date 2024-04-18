@@ -75,4 +75,29 @@ for folder_name in wont_touch:
     print(f"Already in desired format: {folder_name}")
 
 # Usage
-# ./test.py --pretend -p ~/torrents/movie/
+# ./test.py --pretend -p ~/path/to/movies
+
+# After renaming the folders...
+for _, new_name in matched + [(name, name) for name in wont_touch]:
+    try:
+        # Get a list of all files in the folder
+        files = os.listdir(os.path.join(args.path, new_name))
+        # Filter the list to only include movie and subtitle files
+        files = [f for f in files if f.endswith(('.avi', '.mkv', '.mp4', '.srt', '.sub'))]
+        # Get a list of all movie files
+        movie_files = [f for f in files if f.endswith(('.avi', '.mkv', '.mp4'))]
+        # Check if there are any movie files
+        if movie_files:
+            # Find the largest movie file
+            largest_movie_file = max(movie_files, key=lambda f: os.path.getsize(os.path.join(args.path, new_name, f)))
+            # Rename the largest movie file and any subtitle files
+            for file in files:
+                extension = os.path.splitext(file)[1]
+                if args.pretend:
+                    print(f"Would rename {file} to {new_name + extension}")
+                else:
+                    os.rename(os.path.join(args.path, new_name, file), os.path.join(args.path, new_name, new_name + extension))
+        else:
+            print(f"No movie files found in {new_name}")
+    except Exception as e:
+        print(f"Error renaming files in {new_name}: {e}")
